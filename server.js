@@ -97,7 +97,22 @@ app.post('/create', (req, res) => {
   });
 });
 
-
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution sur le port ${port}`);
+});
+
+app.get('/messages', (req, res) => {
+  // Effectuer une requête SQL pour récupérer tous les messages de la table messages
+  connection.query('SELECT m.id,  DATE_FORMAT(date, \'%Y-%m-%d\') AS date, text, idcompte, nom, prenom FROM message m, comptes c WHERE m.idCompte = c.id', (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des messages :', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
+    } else {
+      if (results.length > 0) {
+        res.status(200).json(results); // Renvoyer tous les messages trouvés
+      } else {
+        res.status(404).json({ message: 'Aucun message trouvé' });
+      }
+    }
+  });
 });
