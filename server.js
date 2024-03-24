@@ -25,11 +25,11 @@ const connection = mysql.createConnection({
 });
 
 
-app.get('/user/:nom', (req, res) => {
-  const nomUtilisateur = req.params.nom;
+app.get('/user/:id', (req, res) => {
+  const userId = req.params.id;
 
-  // Effectuer une requête SQL pour récupérer les données de l'utilisateur avec ce nom
-  connection.query('SELECT * FROM comptes WHERE nom = ?', [nomUtilisateur], (error, results, fields) => {
+  // Effectuer une requête SQL pour récupérer les données de l'utilisateur avec cet ID
+  connection.query('SELECT * FROM comptes WHERE id = ?', [userId], (error, results, fields) => {
     if (error) {
       console.error('Erreur lors de la récupération des données de l\'utilisateur :', error);
       res.status(500).json({ message: 'Erreur lors de la récupération des données de l\'utilisateur' });
@@ -43,6 +43,23 @@ app.get('/user/:nom', (req, res) => {
   });
 });
 
+
+
+app.get('/messages', (req, res) => {
+  // Effectuer une requête SQL pour récupérer tous les messages de la table messages
+  connection.query('SELECT m.id,  DATE_FORMAT(date, \'%Y-%m-%d\') AS date, text, idcompte, nom, prenom, titre FROM message m, comptes c WHERE m.idCompte = c.id', (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des messages :', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
+    } else {
+      if (results.length > 0) {
+        res.status(200).json(results); // Renvoyer tous les messages trouvés
+      } else {
+        res.status(404).json({ message: 'Aucun message trouvé' });
+      }
+    }
+  });
+});
 
 
 
@@ -74,6 +91,31 @@ app.post('/log', (req, res) => {
     }
   });
 });
+
+
+app.post('/update/:id', (req, res) => {
+  const userId = req.params.id;
+  const { nom, prenom, email, telephone } = req.body;
+  
+  // Attention à l'écriture de la requête SQL
+  const query = 'UPDATE `comptes` SET `nom`=?, `prenom`=?, `email`=?, `telephone`=? WHERE id=?';
+  // Assurez-vous de fournir les valeurs dans le bon ordre et sous forme de tableau
+  connection.query(query, [nom, prenom, email, telephone, userId], (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la mise à jour du compte :', error);
+      res.status(500).json({ message: 'Erreur lors de la mise à jour' });
+    } else {
+      if (results.affectedRows === 0) {
+        // Aucune ligne mise à jour, cela signifie probablement que le compte avec l'ID spécifié n'existe pas
+        res.status(404).json({ message: 'Compte non trouvé' });
+      } else {
+        // Mise à jour réussie
+        res.status(200).json({ message: 'Mise à jour réussie' });
+      }
+    }
+  });
+});
+
 
 
 app.post('/create', (req, res) => {
