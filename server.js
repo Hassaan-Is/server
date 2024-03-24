@@ -81,7 +81,8 @@ app.post('/log', (req, res) => {
         bcrypt.compare(password, storedHashedPassword, (err, result) => {
           if (result) {
             // Mot de passe correct
-            res.status(200).json({ message: 'Connexion réussie' });
+            const userId = results[0].id;
+            res.status(200).json({ message: 'Connexion réussie', id: userId });
           } else {
             // Mot de passe incorrect
             res.status(401).json({ message: 'Nom ou mot de passe incorrect' });
