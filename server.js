@@ -174,6 +174,19 @@ app.post('/addMessage', (req, res) => {
   });
 });
 
+app.post('/suivre', (req, res) => {
+  const {idCompte,idSuivis } = req.body;
+  const query = 'INSERT INTO `abonnes`(`idCompte`, `idSuivis`) VALUES (?, ?)'; 
+  connection.query(query, [idCompte, idSuivis], (error, results, fields) => {
+    if (error) {
+      console.error('Erreur compte non suivi :', error);
+      res.status(500).json({ message: 'Erreur' });
+    } else {
+      res.status(200).json({ message: 'Suivi' });
+    }
+  });
+});
+
 
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution sur le port ${port}`);
