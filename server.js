@@ -47,7 +47,7 @@ app.get('/user/:id', (req, res) => {
 
 app.get('/messages', (req, res) => {
   // Effectuer une requête SQL pour récupérer tous les messages de la table messages
-  connection.query('SELECT m.id,  DATE_FORMAT(date, \'%Y-%m-%d\') AS date, text, idcompte, nom, prenom, titre FROM message m, comptes c WHERE m.idCompte = c.id', (error, results, fields) => {
+  connection.query('SELECT m.id,  DATE_FORMAT(date, \'%Y-%m-%d\') AS date, titre,text, idcompte, nom, prenom, titre FROM message m, comptes c WHERE m.idCompte = c.id', (error, results, fields) => {
     if (error) {
       console.error('Erreur lors de la récupération des messages :', error);
       res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
@@ -61,20 +61,39 @@ app.get('/messages', (req, res) => {
   });
 });
 
+app.get('/messages/:id', (req, res) => {
+  const userId = req.params.id; // Récupérer l'ID de l'utilisateur depuis les paramètres de l'URL
+  // Effectuer une requête SQL pour récupérer tous les messages de l'utilisateur spécifié avec le nom et le prénom de l'auteur
+  connection.query('SELECT titre, text, date,nom,prenom FROM Comptes C, Message M WHERE C.id=M.idCompte and M.idCompte=?', [userId], (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des messages :', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
+    } else {
+      if (results.length > 0) {
+        res.status(200).json(results); // Renvoyer tous les messages trouvés pour l'utilisateur spécifié
+      } else {
+        res.status(404).json({ message: 'Aucun message trouvé pour cet utilisateur' });
+      }
+    }
+  });
+});
+
+
+
 
 
 app.post('/log', (req, res) => {
-  const { nom, password } = req.body;
+  const { email, password } = req.body;
   
-  const query = 'SELECT * FROM comptes WHERE nom = ?';
-  connection.query(query, [nom], (error, results, fields) => {
+  const query = 'SELECT * FROM comptes WHERE email = ?';
+  connection.query(query, [email], (error, results, fields) => {
     if (error) {
       console.error('Erreur lors de la récupération du compte :', error);
       res.status(500).json({ message: 'Erreur lors de la connexion' });
     } else {
       if (results.length === 0) {
         // Le compte n'existe pas
-        res.status(401).json({ message: 'Nom ou mot de passe incorrect' });
+        res.status(401).json({ message: 'Email ou mot de passe incorrect' });
       } else {
         // Comparer le mot de passe haché stocké en base de données avec le mot de passe fourni par l'utilisateur
         const storedHashedPassword = results[0].password; // Supposons que le mot de passe haché est stocké dans la colonne "password" de la table users
@@ -85,14 +104,13 @@ app.post('/log', (req, res) => {
             res.status(200).json({ message: 'Connexion réussie', id: userId });
           } else {
             // Mot de passe incorrect
-            res.status(401).json({ message: 'Nom ou mot de passe incorrect' });
+            res.status(401).json({ message: 'Email ou mot de passe incorrect' });
           }
         });
       }
     }
   });
 });
-
 
 app.post('/update/:id', (req, res) => {
   const userId = req.params.id;
