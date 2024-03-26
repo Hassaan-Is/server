@@ -158,6 +158,22 @@ app.post('/create', (req, res) => {
   });
 });
 
+app.post('/addMessage', (req, res) => {
+  const date = new Date().toISOString(); // Utilisation de la date actuelle au format ISO
+  const { titre, text, idCompte } = req.body; // Ajout de idCompte
+
+  const query = 'INSERT INTO message (titre, date, text, idCompte) VALUES (?, ?, ?, ?)'; // Modification de la requête pour inclure idCompte
+  connection.query(query, [titre, date, text, idCompte], (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la création du message :', error);
+      res.status(500).json({ message: 'Erreur lors de la création du message' });
+    } else {
+      console.log('Message créé avec succès');
+      res.status(200).json({ message: 'Message créé avec succès' });
+    }
+  });
+});
+
 
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution sur le port ${port}`);
