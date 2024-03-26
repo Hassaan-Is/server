@@ -61,6 +61,23 @@ app.get('/messages', (req, res) => {
   });
 });
 
+app.get('/messagesRecents', (req, res) => {
+  // Effectuer une requête SQL pour récupérer tous les messages de la table messages
+  connection.query('SELECT m.id,  DATE_FORMAT(date, \'%Y-%m-%d\') AS date, titre,text, idcompte, nom, prenom, titre FROM message m, comptes c WHERE m.idCompte = c.id ORDE BY date ASC', (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des messages :', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
+    } else {
+      if (results.length > 0) {
+        res.status(200).json(results); // Renvoyer tous les messages trouvés
+      } else {
+        res.status(404).json({ message: 'Aucun message trouvé' });
+      }
+    }
+  });
+});
+
+
 app.get('/messages/:id', (req, res) => {
   const userId = req.params.id; // Récupérer l'ID de l'utilisateur depuis les paramètres de l'URL
   // Effectuer une requête SQL pour récupérer tous les messages de l'utilisateur spécifié avec le nom et le prénom de l'auteur
@@ -170,19 +187,6 @@ app.post('/addMessage', (req, res) => {
     } else {
       console.log('Message créé avec succès');
       res.status(200).json({ message: 'Message créé avec succès' });
-    }
-  });
-});
-
-app.post('/suivre', (req, res) => {
-  const {idCompte,idSuivis } = req.body;
-  const query = 'INSERT INTO `abonnes`(`idCompte`, `idSuivis`) VALUES (?, ?)'; 
-  connection.query(query, [idCompte, idSuivis], (error, results, fields) => {
-    if (error) {
-      console.error('Erreur compte non suivi :', error);
-      res.status(500).json({ message: 'Erreur' });
-    } else {
-      res.status(200).json({ message: 'Suivi' });
     }
   });
 });
